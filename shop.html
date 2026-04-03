@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Shop — Scarlet Haul</title>
+<link rel="stylesheet" href="styles/main.css"/>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">SCARLET<span> HAUL</span></a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="shop.html" class="nav-link active">Shop</a>
+      <a href="orders.html" class="nav-link">My Orders</a>
+    </div>
+    <div class="nav-actions">
+      <span id="auth-area"></span>
+      <button class="cart-btn" onclick="toggleCart()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Bag <span class="cart-badge" id="cart-count">0</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-header">
+    <div class="page-eyebrow">All products</div>
+    <h1 class="page-title">THE SHOP</h1>
+    <p class="page-sub">Everything in stock. Free shipping on all orders.</p>
+  </div>
+
+  <!-- FILTERS -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px" id="filters">
+    <button class="btn btn-primary btn-sm filter-btn" data-filter="all">All</button>
+    <button class="btn btn-ghost btn-sm filter-btn" data-filter="devices">Devices</button>
+    <button class="btn btn-ghost btn-sm filter-btn" data-filter="clothing">Clothing</button>
+    <button class="btn btn-ghost btn-sm filter-btn" data-filter="accessories">Accessories</button>
+  </div>
+
+  <div class="products-grid" id="all-products">
+    <div style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--muted)">Loading products...</div>
+  </div>
+</div>
+
+<!-- CART SIDEBAR (same as index) -->
+<div class="cart-sidebar" id="cart-sidebar">
+  <div class="cart-head"><h3>YOUR BAG</h3><button class="modal-close" onclick="toggleCart()">✕</button></div>
+  <div class="cart-body" id="cart-body"></div>
+  <div class="cart-foot">
+    <div class="cart-total-row"><span class="cart-total-lbl">Total</span><span class="cart-total-val" id="cart-total">$0.00</span></div>
+    <button class="btn btn-primary btn-full" onclick="window.location.href='index.html#checkout'">Checkout →</button>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">SCARLET<span> HAUL</span></div>
+    <div class="footer-copy">© 2025 Scarlet Haul. All rights reserved.</div>
+    <a href="admin.html" class="footer-admin">Admin →</a>
+  </div>
+</footer>
+
+<script type="module">
+import { supabase } from './lib/supabase.js';
+import { getCart, saveCart, renderCart, renderCartCount, addToCart } from './lib/cart.js';
+import { renderProductCard } from './lib/products.js';
+
+const { data: { user } } = await supabase.auth.getUser();
+const authArea = document.getElementById('auth-area');
+if (user) {
+  authArea.innerHTML = `<a href="account.html" class="btn btn-ghost btn-sm" style="margin-right:4px">My Account</a>`;
+} else {
+  authArea.innerHTML = `<a href="login.html" class="btn btn-ghost btn-sm" style="margin-right:4px">Login</a>`;
+}
+
+let allProducts = [];
+
+const { data: products } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+allProducts = products || [];
+renderProducts(allProducts);
+renderCart();
+renderCartCount();
+
+function renderProducts(list) {
+  const grid = document.getElementById('all-products');
+  if (!list || !list.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--muted)">No products found.</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(p => renderProductCard(p)).join('');
+  grid.querySelectorAll('.add-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const product = list.find(p => p.id == btn.dataset.id);
+      addToCart(product);
+      renderCart();
+      renderCartCount();
+      document.getElementById('cart-sidebar').classList.add('open');
+    });
+  });
+}
+
+// Filters
+document.getElementById('filters').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.replace('btn-primary','btn-ghost'));
+  btn.classList.replace('btn-ghost','btn-primary');
+  const filter = btn.dataset.filter;
+  const filtered = filter === 'all' ? allProducts : allProducts.filter(p => p.category === filter);
+  renderProducts(filtered);
+});
+
+window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('open');
+</script>
+</body>
+</html>

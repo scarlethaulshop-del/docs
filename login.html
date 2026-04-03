@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Login — Scarlet Haul</title>
+<link rel="stylesheet" href="styles/main.css"/>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">SCARLET<span> HAUL</span></a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="shop.html" class="nav-link">Shop</a>
+    </div>
+    <div class="nav-actions">
+      <button class="cart-btn" onclick="window.location.href='index.html'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Bag <span class="cart-badge" id="cart-count">0</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap-sm" style="padding-top:60px;padding-bottom:60px">
+
+  <!-- TABS -->
+  <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:32px">
+    <button id="tab-login" onclick="showTab('login')" style="flex:1;padding:12px;font-family:var(--font-display);font-size:16px;letter-spacing:1.5px;background:var(--red);border:none;color:#fff;cursor:pointer;transition:all 0.2s">LOGIN</button>
+    <button id="tab-signup" onclick="showTab('signup')" style="flex:1;padding:12px;font-family:var(--font-display);font-size:16px;letter-spacing:1.5px;background:var(--surface);border:none;color:var(--muted);cursor:pointer;transition:all 0.2s">CREATE ACCOUNT</button>
+  </div>
+
+  <!-- LOGIN FORM -->
+  <div id="login-form" class="card card-pad">
+    <div style="font-family:var(--font-display);font-size:28px;letter-spacing:2px;margin-bottom:6px">WELCOME BACK</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px">Sign in to your Scarlet Haul account.</div>
+
+    <div id="login-alert"></div>
+
+    <div class="form-group"><label>Email</label><input class="form-control" type="email" id="login-email" placeholder="you@email.com"/></div>
+    <div class="form-group"><label>Password</label><input class="form-control" type="password" id="login-pass" placeholder="Your password"/></div>
+    <button class="btn btn-primary btn-full" style="margin-bottom:12px" onclick="handleLogin()">Sign In</button>
+    <div style="text-align:center;font-size:12px;color:var(--muted)">
+      Forgot password? <span onclick="handleReset()" style="color:var(--red2);cursor:pointer">Reset it</span>
+    </div>
+  </div>
+
+  <!-- SIGNUP FORM -->
+  <div id="signup-form" class="card card-pad" style="display:none">
+    <div style="font-family:var(--font-display);font-size:28px;letter-spacing:2px;margin-bottom:6px">JOIN THE HAUL</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px">Create your free Scarlet Haul account.</div>
+
+    <div id="signup-alert"></div>
+
+    <div class="form-row">
+      <div class="form-group"><label>First name</label><input class="form-control" type="text" id="signup-fname" placeholder="Alex"/></div>
+      <div class="form-group"><label>Last name</label><input class="form-control" type="text" id="signup-lname" placeholder="Smith"/></div>
+    </div>
+    <div class="form-group"><label>Email</label><input class="form-control" type="email" id="signup-email" placeholder="you@email.com"/></div>
+    <div class="form-group"><label>Password</label><input class="form-control" type="password" id="signup-pass" placeholder="Create a password (min 6 chars)"/></div>
+    <button class="btn btn-primary btn-full" onclick="handleSignup()">Create Account</button>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">SCARLET<span> HAUL</span></div>
+    <div class="footer-copy">© 2025 Scarlet Haul. All rights reserved.</div>
+    <a href="admin.html" class="footer-admin">Admin →</a>
+  </div>
+</footer>
+
+<script type="module">
+import { supabase } from './lib/supabase.js';
+
+// Redirect if already logged in
+const { data: { user } } = await supabase.auth.getUser();
+if (user) window.location.href = 'account.html';
+
+window.showTab = (tab) => {
+  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('signup-form').style.display = tab === 'signup' ? 'block' : 'none';
+  document.getElementById('tab-login').style.background = tab === 'login' ? 'var(--red)' : 'var(--surface)';
+  document.getElementById('tab-login').style.color = tab === 'login' ? '#fff' : 'var(--muted)';
+  document.getElementById('tab-signup').style.background = tab === 'signup' ? 'var(--red)' : 'var(--surface)';
+  document.getElementById('tab-signup').style.color = tab === 'signup' ? '#fff' : 'var(--muted)';
+};
+
+function showAlert(id, msg, type='error') {
+  document.getElementById(id).innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+}
+
+window.handleLogin = async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (!email || !pass) { showAlert('login-alert', 'Please fill in all fields.'); return; }
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+  if (error) { showAlert('login-alert', error.message); return; }
+  window.location.href = 'account.html';
+};
+
+window.handleSignup = async () => {
+  const fname = document.getElementById('signup-fname').value.trim();
+  const lname = document.getElementById('signup-lname').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const pass = document.getElementById('signup-pass').value;
+  if (!fname || !lname || !email || !pass) { showAlert('signup-alert', 'Please fill in all fields.'); return; }
+  if (pass.length < 6) { showAlert('signup-alert', 'Password must be at least 6 characters.'); return; }
+
+  const { error } = await supabase.auth.signUp({
+    email, password: pass,
+    options: { data: { full_name: `${fname} ${lname}` } }
+  });
+  if (error) { showAlert('signup-alert', error.message); return; }
+  showAlert('signup-alert', '✓ Account created! Check your email to confirm your account, then log in.', 'success');
+};
+
+window.handleReset = async () => {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) { showAlert('login-alert', 'Enter your email address first.'); return; }
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/reset.html' });
+  if (error) { showAlert('login-alert', error.message); return; }
+  showAlert('login-alert', '✓ Password reset email sent! Check your inbox.', 'success');
+};
+</script>
+</body>
+</html>

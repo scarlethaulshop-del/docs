@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Account — Scarlet Haul</title>
+<link rel="stylesheet" href="styles/main.css"/>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">SCARLET<span> HAUL</span></a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="shop.html" class="nav-link">Shop</a>
+      <a href="account.html" class="nav-link active">My Account</a>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-ghost btn-sm" onclick="handleLogout()">Log out</button>
+      <button class="cart-btn" onclick="window.location.href='index.html'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Shop
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-header">
+    <div class="page-eyebrow">Your account</div>
+    <h1 class="page-title" id="page-greeting">MY ACCOUNT</h1>
+    <p class="page-sub" id="page-email" style="color:var(--muted)"></p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:32px;align-items:start">
+
+    <!-- SIDEBAR -->
+    <div class="card card-pad" style="position:sticky;top:80px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <button onclick="showSection('orders')" class="acct-nav-btn active" id="nav-orders">My Orders</button>
+        <button onclick="showSection('profile')" class="acct-nav-btn" id="nav-profile">Profile</button>
+        <hr class="divider" style="margin:8px 0"/>
+        <button onclick="handleLogout()" style="background:none;border:none;color:var(--muted);font-family:var(--font-body);font-size:13px;text-align:left;cursor:pointer;padding:8px 0;transition:color 0.2s" onmouseover="this.style.color='var(--red2)'" onmouseout="this.style.color='var(--muted)'">Log out →</button>
+      </div>
+    </div>
+
+    <!-- MAIN AREA -->
+    <div>
+      <!-- ORDERS -->
+      <div id="section-orders">
+        <div style="font-family:var(--font-display);font-size:24px;letter-spacing:1.5px;margin-bottom:20px">ORDER HISTORY</div>
+        <div class="card" id="orders-container">
+          <div style="text-align:center;padding:48px;color:var(--muted)">Loading orders...</div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div id="section-profile" style="display:none">
+        <div style="font-family:var(--font-display);font-size:24px;letter-spacing:1.5px;margin-bottom:20px">PROFILE</div>
+        <div class="card card-pad">
+          <div id="profile-alert"></div>
+          <div class="form-group"><label>Full name</label><input class="form-control" type="text" id="prof-name"/></div>
+          <div class="form-group"><label>Email</label><input class="form-control" type="email" id="prof-email" disabled style="opacity:0.5"/></div>
+          <div class="form-group"><label>New password</label><input class="form-control" type="password" id="prof-pass" placeholder="Leave blank to keep current"/></div>
+          <button class="btn btn-primary" onclick="saveProfile()">Save changes</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">SCARLET<span> HAUL</span></div>
+    <div class="footer-copy">© 2025 Scarlet Haul. All rights reserved.</div>
+    <a href="admin.html" class="footer-admin">Admin →</a>
+  </div>
+</footer>
+
+<style>
+.acct-nav-btn { width:100%;text-align:left;background:none;border:none;color:var(--muted);font-family:var(--font-body);font-size:13px;cursor:pointer;padding:9px 12px;border-radius:6px;transition:all 0.2s; }
+.acct-nav-btn:hover { background:var(--surface2);color:var(--text); }
+.acct-nav-btn.active { background:var(--red-glow);color:var(--red2);border:1px solid rgba(204,28,28,0.2); }
+</style>
+
+<script type="module">
+import { supabase } from './lib/supabase.js';
+
+const { data: { user } } = await supabase.auth.getUser();
+if (!user) { window.location.href = 'login.html'; }
+
+const name = user.user_metadata?.full_name || 'Hauler';
+document.getElementById('page-greeting').textContent = `HEY, ${name.split(' ')[0].toUpperCase()}`;
+document.getElementById('page-email').textContent = user.email;
+document.getElementById('prof-name').value = name;
+document.getElementById('prof-email').value = user.email;
+
+// Load orders
+const { data: orders } = await supabase
+  .from('orders')
+  .select('*')
+  .eq('user_id', user.id)
+  .order('created_at', { ascending: false });
+
+const container = document.getElementById('orders-container');
+if (!orders || !orders.length) {
+  container.innerHTML = `<div style="text-align:center;padding:48px;color:var(--muted)">No orders yet. <a href="shop.html" style="color:var(--red2)">Start shopping →</a></div>`;
+} else {
+  container.innerHTML = `
+    <div style="overflow-x:auto">
+    <table class="table">
+      <thead><tr>
+        <th>Order ID</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+        ${orders.map(o => `
+          <tr>
+            <td><span class="order-id">${o.order_id}</span></td>
+            <td style="color:var(--muted)">${new Date(o.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+            <td style="color:var(--muted)">${o.items?.length || 0} item${o.items?.length !== 1 ? 's' : ''}</td>
+            <td style="font-family:var(--font-display);font-size:16px;color:var(--red2)">$${o.total}</td>
+            <td><span class="status-badge status-${o.status?.replace('_payment','')?.replace('_',' ') || 'pending'}">${o.status?.replace('_', ' ') || 'Pending'}</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    </div>
+  `;
+}
+
+window.showSection = (s) => {
+  ['orders','profile'].forEach(x => {
+    document.getElementById('section-'+x).style.display = x === s ? 'block' : 'none';
+    document.getElementById('nav-'+x).classList.toggle('active', x === s);
+  });
+};
+
+window.handleLogout = async () => {
+  await supabase.auth.signOut();
+  window.location.href = 'index.html';
+};
+
+window.saveProfile = async () => {
+  const name = document.getElementById('prof-name').value.trim();
+  const pass = document.getElementById('prof-pass').value;
+  const updates = { data: { full_name: name } };
+  if (pass) updates.password = pass;
+  const { error } = await supabase.auth.updateUser(updates);
+  const alertEl = document.getElementById('profile-alert');
+  if (error) {
+    alertEl.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+  } else {
+    alertEl.innerHTML = `<div class="alert alert-success">✓ Profile updated!</div>`;
+    setTimeout(() => alertEl.innerHTML = '', 3000);
+  }
+};
+</script>
+</body>
+</html>

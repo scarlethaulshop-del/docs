@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin — Scarlet Haul</title>
+<link rel="stylesheet" href="styles/main.css"/>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">SCARLET<span> HAUL</span></a>
+    <div class="nav-links">
+      <span style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--red2)">Admin Panel</span>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html" class="btn btn-ghost btn-sm">← Back to store</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap" style="padding-top:40px">
+
+  <!-- AUTH CHECK -->
+  <div id="auth-check" style="text-align:center;padding:80px 0">
+    <div style="font-family:var(--font-display);font-size:32px;letter-spacing:2px;margin-bottom:16px">ADMIN LOGIN</div>
+    <div style="max-width:360px;margin:0 auto">
+      <div id="admin-alert"></div>
+      <div class="form-group"><label>Admin password</label><input class="form-control" type="password" id="admin-pass" placeholder="Enter admin password"/></div>
+      <button class="btn btn-primary btn-full" onclick="checkAdmin()">Access panel</button>
+    </div>
+  </div>
+
+  <!-- ADMIN CONTENT (hidden until password check) -->
+  <div id="admin-content" style="display:none">
+
+    <!-- STATS ROW -->
+    <div class="stats-bar" style="margin-bottom:40px" id="admin-stats">
+      <div class="stat-item"><div class="stat-num" id="stat-orders">0</div><div class="stat-lbl">Total Orders</div></div>
+      <div class="stat-item"><div class="stat-num" id="stat-pending">0</div><div class="stat-lbl">Pending Payment</div></div>
+      <div class="stat-item"><div class="stat-num" id="stat-revenue">$0</div><div class="stat-lbl">Total Revenue</div></div>
+      <div class="stat-item"><div class="stat-num" id="stat-products">0</div><div class="stat-lbl">Products</div></div>
+    </div>
+
+    <!-- TABS -->
+    <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:32px;width:fit-content">
+      <button onclick="adminTab('orders')" id="atab-orders" class="atab active-tab">Orders</button>
+      <button onclick="adminTab('products')" id="atab-products" class="atab">Products</button>
+      <button onclick="adminTab('add-product')" id="atab-add-product" class="atab">+ Add Product</button>
+      <button onclick="adminTab('settings')" id="atab-settings" class="atab">Settings</button>
+    </div>
+
+    <!-- ORDERS TABLE -->
+    <div id="asec-orders">
+      <div style="font-family:var(--font-display);font-size:24px;letter-spacing:1.5px;margin-bottom:20px">ALL ORDERS</div>
+      <div class="card" id="admin-orders-table">
+        <div style="text-align:center;padding:40px;color:var(--muted)">Loading...</div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS TABLE -->
+    <div id="asec-products" style="display:none">
+      <div style="font-family:var(--font-display);font-size:24px;letter-spacing:1.5px;margin-bottom:20px">PRODUCTS</div>
+      <div class="card" id="admin-products-table">
+        <div style="text-align:center;padding:40px;color:var(--muted)">Loading...</div>
+      </div>
+    </div>
+
+    <!-- ADD PRODUCT -->
+    <div id="asec-add-product" style="display:none">
+      <div style="font-family:var(--font-display);font-size:24px;letter-spacing:1.5px;margin-bottom:20px">ADD PRODUCT</div>
+      <div class="card card-pad" style="max-width:560px">
+        <div id="addprod-alert"></div>
+        <div class="form-group"><label>Product name</label><input class="form-control" type="text" id="np-name" placeholder="e.g. ProBuds X1"/></div>
+        <div class="form-group"><label>Description</label><input class="form-control" type="text" id="np-desc" placeholder="Short product description"/></div>
+        <div class="form-row">
+          <div class="form-group"><label>Price ($)</label><input class="form-control" type="number" id="np-price" placeholder="24.99" step="0.01"/></div>
+          <div class="form-group"><label>Original price ($)</label><input class="form-control" type="number" id="np-orig" placeholder="49.99" step="0.01"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Category</label>
+            <select class="form-control" id="np-cat">
+              <option value="devices">Devices</option>
+              <option value="clothing">Clothing</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Badge</label>
+            <select class="form-control" id="np-badge">
+              <option value="HOT">HOT</option>
+              <option value="NEW">NEW</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Emoji icon</label><input class="form-control" type="text" id="np-emoji" placeholder="🎧"/></div>
+          <div class="form-group"><label>Stock quantity</label><input class="form-control" type="number" id="np-stock" placeholder="100"/></div>
+        </div>
+        <div class="form-group"><label>Supplier URL (AliExpress / DSers)</label><input class="form-control" type="text" id="np-supplier" placeholder="https://aliexpress.com/item/..."/></div>
+        <div class="form-group"><label>Image URL (optional)</label><input class="form-control" type="text" id="np-img" placeholder="https://..."/></div>
+        <button class="btn btn-primary" onclick="addProduct()">Add Product</button>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="asec-settings" style="display:none">
+      <div style="font-family:var(--font-display);font-size:24px;letter-spacing:1.5px;margin-bottom:20px">SETTINGS</div>
+      <div class="card card-pad" style="max-width:560px">
+        <div id="settings-alert"></div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:16px">Store Info</div>
+        <div class="form-group"><label>Your Cash App $cashtag</label><input class="form-control" type="text" id="set-cashapp" placeholder="$YourCashTag"/></div>
+        <div class="form-group"><label>Store email (for order notifications)</label><input class="form-control" type="email" id="set-email" placeholder="owner@youremail.com"/></div>
+        <div class="form-group"><label>New admin password</label><input class="form-control" type="password" id="set-adminpass" placeholder="Leave blank to keep current"/></div>
+        <hr class="divider"/>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:16px">Resend Email API (for order emails)</div>
+        <div class="form-group"><label>Resend API Key</label><input class="form-control" type="text" id="set-resend" placeholder="re_..."/></div>
+        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">SCARLET<span> HAUL</span></div>
+    <div class="footer-copy">Admin Panel · Scarlet Haul</div>
+    <span></span>
+  </div>
+</footer>
+
+<style>
+.atab { padding:10px 20px;font-family:var(--font-body);font-size:12px;text-transform:uppercase;letter-spacing:1px;background:var(--surface);border:none;color:var(--muted);cursor:pointer;transition:all 0.2s; }
+.atab.active-tab { background:var(--red);color:#fff; }
+</style>
+
+<script type="module">
+import { supabase } from './lib/supabase.js';
+
+// Simple admin password check (stored in localStorage)
+// In production you'd use Supabase RLS with an admin role
+const ADMIN_PASSWORD = localStorage.getItem('sh_admin_pass') || 'scarlethaul2025';
+
+window.checkAdmin = () => {
+  const entered = document.getElementById('admin-pass').value;
+  if (entered === ADMIN_PASSWORD) {
+    document.getElementById('auth-check').style.display = 'none';
+    document.getElementById('admin-content').style.display = 'block';
+    localStorage.setItem('sh_admin_authed', '1');
+    loadAdminData();
+  } else {
+    document.getElementById('admin-alert').innerHTML = `<div class="alert alert-error">Wrong password.</div>`;
+  }
+};
+
+// Check if already authed this session
+if (localStorage.getItem('sh_admin_authed') === '1') {
+  document.getElementById('auth-check').style.display = 'none';
+  document.getElementById('admin-content').style.display = 'block';
+  loadAdminData();
+}
+
+async function loadAdminData() {
+  // Load orders
+  const { data: orders } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+  const { data: products } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+
+  // Stats
+  const pending = (orders || []).filter(o => o.status === 'pending_payment').length;
+  const revenue = (orders || []).filter(o => o.status !== 'pending_payment').reduce((a, o) => a + parseFloat(o.total || 0), 0);
+  document.getElementById('stat-orders').textContent = (orders || []).length;
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-revenue').textContent = '$' + revenue.toFixed(2);
+  document.getElementById('stat-products').textContent = (products || []).length;
+
+  // Orders table
+  const ot = document.getElementById('admin-orders-table');
+  if (!orders || !orders.length) {
+    ot.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">No orders yet.</div>`;
+  } else {
+    ot.innerHTML = `<div style="overflow-x:auto"><table class="table">
+      <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        ${orders.map(o => `
+          <tr>
+            <td><span class="order-id">${o.order_id}</span></td>
+            <td>
+              <div style="font-size:13px">${o.customer_name}</div>
+              <div style="font-size:11px;color:var(--muted)">${o.customer_email}</div>
+              ${o.cashapp_username ? `<div style="font-size:11px;color:var(--red2)">CashApp: ${o.cashapp_username}</div>` : ''}
+            </td>
+            <td style="color:var(--muted);font-size:12px">${new Date(o.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+            <td style="font-family:var(--font-display);font-size:16px;color:var(--red2)">$${o.total}</td>
+            <td>
+              <select onchange="updateOrderStatus('${o.id}', this.value)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:5px;font-family:var(--font-body);font-size:12px;outline:none;cursor:pointer">
+                <option value="pending_payment" ${o.status==='pending_payment'?'selected':''}>Pending Payment</option>
+                <option value="confirmed" ${o.status==='confirmed'?'selected':''}>Confirmed</option>
+                <option value="shipped" ${o.status==='shipped'?'selected':''}>Shipped</option>
+                <option value="delivered" ${o.status==='delivered'?'selected':''}>Delivered</option>
+              </select>
+            </td>
+            <td>
+              <button onclick="viewOrder('${o.id}')" class="btn btn-ghost btn-sm">View</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table></div>`;
+  }
+
+  // Products table
+  const pt = document.getElementById('admin-products-table');
+  if (!products || !products.length) {
+    pt.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">No products yet. <button onclick="adminTab('add-product')" style="background:none;border:none;color:var(--red2);cursor:pointer;font-family:var(--font-body)">Add one →</button></div>`;
+  } else {
+    pt.innerHTML = `<div style="overflow-x:auto"><table class="table">
+      <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Action</th></tr></thead>
+      <tbody>
+        ${products.map(p => `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:28px">${p.emoji || '📦'}</span>
+                <div>
+                  <div style="font-size:13px;font-weight:500">${p.name}</div>
+                  <div style="font-size:11px;color:var(--muted)">${p.description}</div>
+                </div>
+              </div>
+            </td>
+            <td style="color:var(--muted);font-size:12px;text-transform:capitalize">${p.category || '—'}</td>
+            <td style="font-family:var(--font-display);font-size:16px;color:var(--red2)">$${p.price}</td>
+            <td style="color:var(--muted)">${p.stock ?? '∞'}</td>
+            <td>
+              <button onclick="deleteProduct('${p.id}')" class="btn btn-ghost btn-sm" style="color:var(--red2)">Delete</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table></div>`;
+  }
+}
+
+window.adminTab = (tab) => {
+  ['orders','products','add-product','settings'].forEach(t => {
+    document.getElementById('asec-'+t).style.display = t === tab ? 'block' : 'none';
+    document.getElementById('atab-'+t).classList.toggle('active-tab', t === tab);
+  });
+};
+
+window.updateOrderStatus = async (id, status) => {
+  await supabase.from('orders').update({ status }).eq('id', id);
+};
+
+window.deleteProduct = async (id) => {
+  if (!confirm('Delete this product?')) return;
+  await supabase.from('products').delete().eq('id', id);
+  loadAdminData();
+};
+
+window.addProduct = async () => {
+  const name = document.getElementById('np-name').value.trim();
+  const description = document.getElementById('np-desc').value.trim();
+  const price = parseFloat(document.getElementById('np-price').value);
+  const orig_price = parseFloat(document.getElementById('np-orig').value);
+  const category = document.getElementById('np-cat').value;
+  const badge = document.getElementById('np-badge').value;
+  const emoji = document.getElementById('np-emoji').value || '📦';
+  const stock = parseInt(document.getElementById('np-stock').value) || null;
+  const supplier_url = document.getElementById('np-supplier').value.trim();
+  const image_url = document.getElementById('np-img').value.trim();
+
+  if (!name || !price) {
+    document.getElementById('addprod-alert').innerHTML = `<div class="alert alert-error">Name and price are required.</div>`; return;
+  }
+
+  const { error } = await supabase.from('products').insert({ name, description, price, orig_price, category, badge, emoji, stock, supplier_url, image_url });
+  if (error) {
+    document.getElementById('addprod-alert').innerHTML = `<div class="alert alert-error">${error.message}</div>`; return;
+  }
+  document.getElementById('addprod-alert').innerHTML = `<div class="alert alert-success">✓ Product added!</div>`;
+  setTimeout(() => { document.getElementById('addprod-alert').innerHTML=''; loadAdminData(); adminTab('products'); }, 1500);
+};
+
+window.saveSettings = () => {
+  const cashapp = document.getElementById('set-cashapp').value.trim();
+  const adminpass = document.getElementById('set-adminpass').value;
+  if (cashapp) localStorage.setItem('sh_cashapp', cashapp);
+  if (adminpass) { localStorage.setItem('sh_admin_pass', adminpass); }
+  document.getElementById('settings-alert').innerHTML = `<div class="alert alert-success">✓ Settings saved!</div>`;
+  setTimeout(() => document.getElementById('settings-alert').innerHTML='', 2500);
+};
+
+window.viewOrder = async (id) => {
+  const { data: o } = await supabase.from('orders').select('*').eq('id', id).single();
+  if (!o) return;
+  alert(`Order: ${o.order_id}\nCustomer: ${o.customer_name}\nEmail: ${o.customer_email}\nAddress: ${o.shipping_address}\nCash App: ${o.cashapp_username}\nTotal: $${o.total}\nStatus: ${o.status}\nItems: ${JSON.stringify(o.items, null, 2)}`);
+};
+</script>
+</body>
+</html>

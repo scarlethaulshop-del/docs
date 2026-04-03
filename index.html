@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Scarlet Haul — Gear That Hits Different</title>
+<meta name="description" content="Premium devices and streetwear. Free shipping on every order. Scarlet Haul."/>
+<link rel="stylesheet" href="styles/main.css"/>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">SCARLET<span> HAUL</span></a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link active">Home</a>
+      <a href="shop.html" class="nav-link">Shop</a>
+      <a href="orders.html" class="nav-link">My Orders</a>
+    </div>
+    <div class="nav-actions">
+      <span id="auth-area"></span>
+      <button class="cart-btn" onclick="toggleCart()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Bag <span class="cart-badge" id="cart-count">0</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <div class="hero-eyebrow"><div class="hero-dot"></div><span class="hero-eyebrow-text">New drop — limited stock</span></div>
+      <h1 class="hero-title">GEAR<br>THAT<br><span>HITS.</span></h1>
+      <p class="hero-sub">Premium devices and streetwear, straight to your door. No middleman. No nonsense.</p>
+      <a href="shop.html" class="btn btn-primary">Shop the drop →</a>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-visual-glow"></div>
+      <span class="hero-visual-emoji">🎧</span>
+      <div class="hero-chip">New Drop</div>
+      <div class="hero-chip2">Limited Stock</div>
+    </div>
+  </div>
+</div>
+
+<div class="ticker" style="margin-bottom:56px">
+  <div class="ticker-inner" id="ticker"></div>
+</div>
+
+<div class="wrap">
+  <div class="stats-bar" style="margin-bottom:60px">
+    <div class="stat-item"><div class="stat-num">500+</div><div class="stat-lbl">Orders Shipped</div></div>
+    <div class="stat-item"><div class="stat-num">4.9★</div><div class="stat-lbl">Avg Rating</div></div>
+    <div class="stat-item"><div class="stat-num">FREE</div><div class="stat-lbl">Shipping Always</div></div>
+    <div class="stat-item"><div class="stat-num">24H</div><div class="stat-lbl">Support</div></div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px">
+    <h2 style="font-family:var(--font-display);font-size:36px;letter-spacing:2px">LATEST DROPS</h2>
+    <a href="shop.html" style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:2px">View all →</a>
+  </div>
+
+  <div class="products-grid" id="featured-products"></div>
+</div>
+
+<!-- CART SIDEBAR -->
+<div class="cart-sidebar" id="cart-sidebar">
+  <div class="cart-head">
+    <h3>YOUR BAG</h3>
+    <button class="modal-close" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-body" id="cart-body"></div>
+  <div class="cart-foot">
+    <div class="cart-total-row">
+      <span class="cart-total-lbl">Total</span>
+      <span class="cart-total-val" id="cart-total">$0.00</span>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="goCheckout()">Checkout →</button>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" id="modal-checkout">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('checkout')">✕</button>
+    <div class="modal-title">CHECKOUT</div>
+    <div class="modal-sub">Fill in your shipping info below.</div>
+
+    <div id="checkout-login-warn" class="alert alert-info" style="display:none">
+      You need to <a href="login.html" style="color:var(--red2)">log in</a> before checking out.
+    </div>
+
+    <div id="checkout-form">
+      <div class="form-group"><label>Full name</label><input class="form-control" type="text" id="sh-name" placeholder="Your full name"/></div>
+      <div class="form-group"><label>Email</label><input class="form-control" type="email" id="sh-email" placeholder="you@email.com"/></div>
+      <div class="form-group"><label>Address</label><input class="form-control" type="text" id="sh-addr" placeholder="123 Main St"/></div>
+      <div class="form-row">
+        <div class="form-group"><label>City</label><input class="form-control" type="text" id="sh-city" placeholder="New York"/></div>
+        <div class="form-group"><label>ZIP / Postcode</label><input class="form-control" type="text" id="sh-zip" placeholder="10001"/></div>
+      </div>
+      <div class="form-group"><label>Country</label>
+        <select class="form-control" id="sh-country">
+          <option>United States</option><option>United Kingdom</option>
+          <option>Canada</option><option>Australia</option><option>Germany</option>
+          <option>France</option><option>Netherlands</option>
+        </select>
+      </div>
+      <hr class="divider"/>
+
+      <!-- CASH APP PAYMENT SECTION -->
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:18px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px">Payment — Cash App</div>
+        <div style="font-size:14px;margin-bottom:10px;color:var(--text)">
+          Send your order total to: <strong style="color:var(--red2)">$YOUR_CASHTAG</strong>
+        </div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">
+          1. Open Cash App and send the exact total to <strong style="color:var(--text)">$YOUR_CASHTAG</strong><br>
+          2. In the Cash App note, write your Order ID (shown after you submit)<br>
+          3. We confirm your payment and ship your order within 24–48 hours
+        </div>
+        <div style="margin-top:14px">
+          <label class="form-group" style="margin:0">
+            <span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:7px">Your Cash App username (so we can verify)</span>
+            <input class="form-control" type="text" id="cashapp-user" placeholder="$YourCashTag"/>
+          </label>
+        </div>
+      </div>
+
+      <div class="cart-total-row">
+        <span style="font-size:13px;color:var(--muted)">Order total</span>
+        <span style="font-family:var(--font-display);font-size:24px;color:var(--red2)" id="co-total">$0.00</span>
+      </div>
+
+      <div class="alert alert-success" id="order-success" style="display:none"></div>
+      <button class="btn btn-primary btn-full" onclick="placeOrder()">Place Order →</button>
+      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:12px">Order saved to your account · You'll get a confirmation email</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">SCARLET<span> HAUL</span></div>
+    <div class="footer-copy">© 2025 Scarlet Haul. All rights reserved.</div>
+    <a href="admin.html" class="footer-admin">Admin →</a>
+  </div>
+</footer>
+
+<script type="module">
+import { supabase } from './lib/supabase.js';
+import { getCart, saveCart, renderCart, renderCartCount, addToCart } from './lib/cart.js';
+import { renderProductCard } from './lib/products.js';
+import { generateOrderId } from './lib/utils.js';
+
+// Ticker
+const words = ['FREE SHIPPING','NEW DROPS WEEKLY','SCARLET HAUL','PREMIUM QUALITY','FAST DELIVERY','LIMITED STOCK','SECURE CHECKOUT'];
+const all = [...words,...words].map(w=>`<span class="ticker-item">${w} <span>✦</span></span>`).join('');
+document.getElementById('ticker').innerHTML = all + all;
+
+// Auth state
+const { data: { user } } = await supabase.auth.getUser();
+const authArea = document.getElementById('auth-area');
+if (user) {
+  authArea.innerHTML = `<a href="account.html" class="btn btn-ghost btn-sm" style="margin-right:4px">My Account</a>`;
+} else {
+  authArea.innerHTML = `<a href="login.html" class="btn btn-ghost btn-sm" style="margin-right:4px">Login</a>`;
+}
+
+// Load featured products (first 6)
+const { data: products } = await supabase.from('products').select('*').order('created_at', { ascending: false }).limit(6);
+const grid = document.getElementById('featured-products');
+if (products && products.length) {
+  grid.innerHTML = products.map(p => renderProductCard(p)).join('');
+  grid.querySelectorAll('.add-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const product = products.find(p => p.id == id);
+      addToCart(product);
+      renderCart();
+      renderCartCount();
+      document.getElementById('cart-sidebar').classList.add('open');
+    });
+  });
+} else {
+  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--muted)">No products yet. Add some in the admin panel.</div>`;
+}
+
+// Cart
+renderCart();
+renderCartCount();
+
+window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('open');
+window.closeModal = id => document.getElementById('modal-' + id).classList.remove('open');
+window.goCheckout = () => {
+  document.getElementById('cart-sidebar').classList.remove('open');
+  document.getElementById('checkout-total') && (document.getElementById('checkout-total').textContent = document.getElementById('cart-total').textContent);
+  document.getElementById('co-total').textContent = document.getElementById('cart-total').textContent;
+  if (user && user.email) document.getElementById('sh-email').value = user.email;
+  document.getElementById('modal-checkout').classList.add('open');
+};
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+window.placeOrder = async () => {
+  const name = document.getElementById('sh-name').value.trim();
+  const email = document.getElementById('sh-email').value.trim();
+  const addr = document.getElementById('sh-addr').value.trim();
+  const city = document.getElementById('sh-city').value.trim();
+  const zip = document.getElementById('sh-zip').value.trim();
+  const country = document.getElementById('sh-country').value;
+  const cashapp = document.getElementById('cashapp-user').value.trim();
+
+  if (!name || !email || !addr || !city || !zip || !cashapp) {
+    alert('Please fill in all fields including your Cash App username.'); return;
+  }
+
+  const cart = getCart();
+  if (!cart.length) { alert('Your cart is empty.'); return; }
+
+  const total = cart.reduce((a, x) => a + x.price * x.qty, 0);
+  const orderId = generateOrderId();
+
+  const orderData = {
+    order_id: orderId,
+    user_id: user ? user.id : null,
+    customer_name: name,
+    customer_email: email,
+    shipping_address: `${addr}, ${city}, ${zip}, ${country}`,
+    cashapp_username: cashapp,
+    items: cart,
+    total: total.toFixed(2),
+    status: 'pending_payment',
+    created_at: new Date().toISOString()
+  };
+
+  const { error } = await supabase.from('orders').insert(orderData);
+
+  if (error) { alert('Something went wrong. Please try again.'); console.error(error); return; }
+
+  // Send confirmation email via your Resend edge function
+  try {
+    await supabase.functions.invoke('send-order-email', {
+      body: { email, name, orderId, total: total.toFixed(2), items: cart }
+    });
+  } catch(e) { console.log('Email send skipped:', e); }
+
+  const successEl = document.getElementById('order-success');
+  successEl.style.display = 'block';
+  successEl.innerHTML = `
+    ✓ Order placed! Your Order ID is <span class="order-id">${orderId}</span><br>
+    <span style="font-size:12px;margin-top:8px;display:block">Now send <strong>$${total.toFixed(2)}</strong> to <strong style="color:var(--red2)">$YOUR_CASHTAG</strong> on Cash App with your Order ID in the note.</span>
+  `;
+  saveCart([]);
+  renderCart();
+  renderCartCount();
+};
+</script>
+</body>
+</html>
