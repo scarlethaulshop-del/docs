@@ -1,6 +1,6 @@
 -- ============================================================
---  SCARLET HAUL — Supabase Database Setup
---  Paste this entire file into Supabase → SQL Editor → Run
+--  SCARLET HAUL — Supabase Database Setup (v2)
+--  Paste this into Supabase → SQL Editor → Run
 -- ============================================================
 
 -- PRODUCTS table
@@ -20,7 +20,7 @@ create table if not exists products (
   created_at timestamptz default now()
 );
 
--- ORDERS table
+-- ORDERS table (updated with payment_method, credit fields)
 create table if not exists orders (
   id uuid default gen_random_uuid() primary key,
   order_id text not null unique,
@@ -28,8 +28,12 @@ create table if not exists orders (
   customer_name text not null,
   customer_email text not null,
   shipping_address text not null,
-  cashapp_username text,
+  payment_method text default 'cashapp',
+  payment_handle text,
   items jsonb not null,
+  subtotal numeric(10,2),
+  credit_applied numeric(10,2) default 0,
+  credit_earned numeric(10,2) default 0,
   total numeric(10,2) not null,
   status text default 'pending_payment',
   notes text,
@@ -37,31 +41,51 @@ create table if not exists orders (
   updated_at timestamptz default now()
 );
 
--- Enable Row Level Security
+-- STORE CREDIT table
+create table if not exists store_credit (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) unique not null,
+  balance numeric(10,2) default 0,
+  lifetime_earned numeric(10,2) default 0,
+  updated_at timestamptz default now()
+);
+
+-- Row Level Security
 alter table products enable row level security;
 alter table orders enable row level security;
+alter table store_credit enable row level security;
 
--- PRODUCTS: anyone can read, only service role can write
+-- Products: public read
 create policy "Products are public" on products
   for select using (active = true);
 
--- ORDERS: users can see their own orders; service role can see all
+-- Orders: users see own orders
 create policy "Users can view own orders" on orders
   for select using (auth.uid() = user_id);
 
-create policy "Authenticated users can insert orders" on orders
-  for insert with check (true);
-
--- Allow anonymous order inserts (for guest checkout)
 create policy "Anyone can insert orders" on orders
   for insert with check (true);
 
--- INDEX for fast order lookups
+create policy "Users can update own orders" on orders
+  for update using (auth.uid() = user_id);
+
+-- Store credit: users see and update own credit
+create policy "Users can view own credit" on store_credit
+  for select using (auth.uid() = user_id);
+
+create policy "Users can upsert own credit" on store_credit
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can update own credit" on store_credit
+  for update using (auth.uid() = user_id);
+
+-- Indexes
 create index if not exists orders_user_id_idx on orders(user_id);
 create index if not exists orders_order_id_idx on orders(order_id);
 create index if not exists orders_status_idx on orders(status);
+create index if not exists store_credit_user_id_idx on store_credit(user_id);
 
--- SAMPLE PRODUCTS (delete these and add your own in the admin panel)
+-- Sample products
 insert into products (name, description, price, orig_price, category, badge, emoji) values
   ('ProBuds X1', 'Crystal clear sound, noise cancelling, wireless charging case.', 24.99, 49.99, 'devices', 'HOT', '🎧'),
   ('ProBuds Air', 'Ultra-thin design, 30hr battery, IPX5 water resistant.', 19.99, 39.99, 'devices', 'NEW', '🎵'),

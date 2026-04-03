@@ -18,10 +18,10 @@
     </div>
     <div class="nav-actions">
       <button class="btn btn-ghost btn-sm" onclick="handleLogout()">Log out</button>
-      <button class="cart-btn" onclick="window.location.href='index.html'">
+      <a href="shop.html" class="cart-btn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
         Shop
-      </button>
+      </a>
     </div>
   </div>
 </nav>
@@ -33,12 +33,26 @@
     <p class="page-sub" id="page-email" style="color:var(--muted)"></p>
   </div>
 
-  <div style="display:grid;grid-template-columns:220px 1fr;gap:32px;align-items:start">
+  <!-- CREDIT BANNER -->
+  <div id="credit-banner" style="display:none;margin-bottom:32px">
+    <div style="background:var(--credit-bg);border:1px solid var(--credit-border);border-radius:12px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--credit);margin-bottom:6px">Store Credit Balance</div>
+        <div style="font-family:var(--font-display);font-size:36px;letter-spacing:2px;color:var(--credit)" id="credit-balance-big">$0.00</div>
+      </div>
+      <div style="font-size:13px;color:var(--muted);max-width:300px;line-height:1.6">
+        You earn <strong style="color:var(--credit)">5% back</strong> on every order as store credit. Applied automatically at checkout.
+      </div>
+      <a href="shop.html" class="btn btn-ghost btn-sm" style="border-color:var(--credit-border);color:var(--credit)">Spend it →</a>
+    </div>
+  </div>
 
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:32px;align-items:start">
     <!-- SIDEBAR -->
     <div class="card card-pad" style="position:sticky;top:80px">
       <div style="display:flex;flex-direction:column;gap:4px">
         <button onclick="showSection('orders')" class="acct-nav-btn active" id="nav-orders">My Orders</button>
+        <button onclick="showSection('credit')" class="acct-nav-btn" id="nav-credit">Store Credit</button>
         <button onclick="showSection('profile')" class="acct-nav-btn" id="nav-profile">Profile</button>
         <hr class="divider" style="margin:8px 0"/>
         <button onclick="handleLogout()" style="background:none;border:none;color:var(--muted);font-family:var(--font-body);font-size:13px;text-align:left;cursor:pointer;padding:8px 0;transition:color 0.2s" onmouseover="this.style.color='var(--red2)'" onmouseout="this.style.color='var(--muted)'">Log out →</button>
@@ -55,6 +69,40 @@
         </div>
       </div>
 
+      <!-- STORE CREDIT HISTORY -->
+      <div id="section-credit" style="display:none">
+        <div style="font-family:var(--font-display);font-size:24px;letter-spacing:1.5px;margin-bottom:20px">STORE CREDIT</div>
+        <div class="card card-pad" style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px">Current Balance</div>
+              <div style="font-family:var(--font-display);font-size:42px;letter-spacing:2px;color:var(--credit)" id="credit-balance-section">$0.00</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px">Lifetime Earned</div>
+              <div style="font-family:var(--font-display);font-size:28px;letter-spacing:1px;color:var(--muted)" id="credit-lifetime">$0.00</div>
+            </div>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <div style="font-size:13px;font-weight:500;margin-bottom:16px">How it works</div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div style="width:32px;height:32px;background:var(--credit-bg);border:1px solid var(--credit-border);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">🛒</div>
+              <div><div style="font-size:13px;font-weight:500;margin-bottom:3px">Earn 5% on every order</div><div style="font-size:12px;color:var(--muted)">Every time you buy, you get 5% of your order value back as store credit automatically.</div></div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div style="width:32px;height:32px;background:var(--credit-bg);border:1px solid var(--credit-border);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">💜</div>
+              <div><div style="font-size:13px;font-weight:500;margin-bottom:3px">Use it on any order</div><div style="font-size:12px;color:var(--muted)">Toggle "Use store credit" in your cart to apply your balance. It stacks with sales.</div></div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div style="width:32px;height:32px;background:var(--credit-bg);border:1px solid var(--credit-border);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">♾️</div>
+              <div><div style="font-size:13px;font-weight:500;margin-bottom:3px">Never expires</div><div style="font-size:12px;color:var(--muted)">Your credit stays in your account until you use it. No expiry, no limits.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- PROFILE -->
       <div id="section-profile" style="display:none">
         <div style="font-family:var(--font-display);font-size:24px;letter-spacing:1.5px;margin-bottom:20px">PROFILE</div>
@@ -67,7 +115,6 @@
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -78,12 +125,6 @@
     <a href="admin.html" class="footer-admin">Admin →</a>
   </div>
 </footer>
-
-<style>
-.acct-nav-btn { width:100%;text-align:left;background:none;border:none;color:var(--muted);font-family:var(--font-body);font-size:13px;cursor:pointer;padding:9px 12px;border-radius:6px;transition:all 0.2s; }
-.acct-nav-btn:hover { background:var(--surface2);color:var(--text); }
-.acct-nav-btn.active { background:var(--red-glow);color:var(--red2);border:1px solid rgba(204,28,28,0.2); }
-</style>
 
 <script type="module">
 import { supabase } from './lib/supabase.js';
@@ -97,41 +138,45 @@ document.getElementById('page-email').textContent = user.email;
 document.getElementById('prof-name').value = name;
 document.getElementById('prof-email').value = user.email;
 
+// Load store credit
+const { data: creditData } = await supabase.from('store_credit').select('*').eq('user_id', user.id).single();
+const balance = creditData?.balance || 0;
+const lifetime = creditData?.lifetime_earned || 0;
+
+if (balance > 0) {
+  document.getElementById('credit-banner').style.display = 'block';
+  document.getElementById('credit-balance-big').textContent = '$' + balance.toFixed(2);
+}
+document.getElementById('credit-balance-section').textContent = '$' + balance.toFixed(2);
+document.getElementById('credit-lifetime').textContent = '$' + lifetime.toFixed(2);
+
 // Load orders
 const { data: orders } = await supabase
-  .from('orders')
-  .select('*')
-  .eq('user_id', user.id)
-  .order('created_at', { ascending: false });
+  .from('orders').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
 
 const container = document.getElementById('orders-container');
 if (!orders || !orders.length) {
   container.innerHTML = `<div style="text-align:center;padding:48px;color:var(--muted)">No orders yet. <a href="shop.html" style="color:var(--red2)">Start shopping →</a></div>`;
 } else {
-  container.innerHTML = `
-    <div style="overflow-x:auto">
-    <table class="table">
-      <thead><tr>
-        <th>Order ID</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th>
-      </tr></thead>
-      <tbody>
-        ${orders.map(o => `
-          <tr>
-            <td><span class="order-id">${o.order_id}</span></td>
-            <td style="color:var(--muted)">${new Date(o.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
-            <td style="color:var(--muted)">${o.items?.length || 0} item${o.items?.length !== 1 ? 's' : ''}</td>
-            <td style="font-family:var(--font-display);font-size:16px;color:var(--red2)">$${o.total}</td>
-            <td><span class="status-badge status-${o.status?.replace('_payment','')?.replace('_',' ') || 'pending'}">${o.status?.replace('_', ' ') || 'Pending'}</span></td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-    </div>
-  `;
+  container.innerHTML = `<div style="overflow-x:auto"><table class="table">
+    <thead><tr><th>Order ID</th><th>Date</th><th>Items</th><th>Total</th><th>Credit Earned</th><th>Status</th></tr></thead>
+    <tbody>
+      ${orders.map(o => `
+        <tr>
+          <td><span class="order-id">${o.order_id}</span></td>
+          <td style="color:var(--muted);font-size:12px">${new Date(o.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+          <td style="color:var(--muted)">${o.items?.length || 0} item${o.items?.length !== 1 ? 's' : ''}</td>
+          <td style="font-family:var(--font-display);font-size:16px;color:var(--red2)">$${o.total}</td>
+          <td style="color:var(--credit);font-size:13px">${o.credit_earned ? '+$' + parseFloat(o.credit_earned).toFixed(2) : '—'}</td>
+          <td><span class="status-badge status-${(o.status||'pending').replace('_payment','').replace('_','-')}">${(o.status||'pending').replace('_',' ')}</span></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table></div>`;
 }
 
 window.showSection = (s) => {
-  ['orders','profile'].forEach(x => {
+  ['orders','credit','profile'].forEach(x => {
     document.getElementById('section-'+x).style.display = x === s ? 'block' : 'none';
     document.getElementById('nav-'+x).classList.toggle('active', x === s);
   });
