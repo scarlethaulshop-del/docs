@@ -6,6 +6,8 @@
 <title>Scarlet Haul — Gear That Hits Different</title>
 <meta name="description" content="Premium devices and streetwear. Free shipping on every order."/>
 <link rel="stylesheet" href="styles/main.css"/>
+<!-- Whop checkout embed script — loads their payment iframe -->
+<script async defer src="https://js.whop.com/static/checkout/loader.js"></script>
 </head>
 <body>
 
@@ -15,15 +17,10 @@
     <div class="nav-links">
       <a href="index.html" class="nav-link active">Home</a>
       <a href="shop.html" class="nav-link">Shop</a>
-      <!-- Auth-only link: hidden until logged in, set visible by JS -->
       <a href="account.html" class="nav-link auth-only" id="nav-orders">My Orders</a>
     </div>
     <div class="nav-actions">
       <span id="auth-area"></span>
-      <button class="cart-btn" onclick="toggleCart()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-        Bag <span class="cart-badge" id="cart-count">0</span>
-      </button>
     </div>
   </div>
 </nav>
@@ -64,146 +61,51 @@
   <div class="products-grid" id="featured-products"></div>
 </div>
 
-<!-- CART SIDEBAR -->
-<div class="cart-sidebar" id="cart-sidebar">
-  <div class="cart-head">
-    <h3>YOUR BAG</h3>
-    <button class="modal-close" onclick="toggleCart()">✕</button>
-  </div>
-  <div class="cart-body" id="cart-body"></div>
-  <div class="cart-foot">
-    <!-- Store credit toggle (only shown if user has credit) -->
-    <div id="credit-toggle-wrap" style="display:none">
-      <label class="use-credit-toggle">
-        <input type="checkbox" id="use-credit-cb" onchange="onCreditToggle()"/>
-        <span>Use store credit · <span id="credit-available">$0.00</span> available</span>
-      </label>
-      <div class="cart-credit-row" id="credit-discount-row" style="display:none">
-        <span class="cart-credit-lbl">💜 Credit applied</span>
-        <span class="cart-credit-val" id="credit-discount-val">-$0.00</span>
+<!-- ============================================================
+     WHOP CHECKOUT MODAL
+     When a customer clicks "Buy Now", this modal opens and Whop's
+     iframe mounts inside #whop-embed-container automatically.
+     Whop handles: card processing, Apple Pay, fraud, receipts, 
+     tax, and pays you directly. Zero manual work needed.
+============================================================ -->
+<div class="modal-overlay" id="modal-whop">
+  <div class="modal" style="max-width:520px;padding:0;overflow:hidden;background:var(--surface)">
+
+    <!-- Modal header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-family:var(--font-display);font-size:22px;letter-spacing:1.5px" id="whop-product-name">Checkout</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Secure payment via Whop</div>
       </div>
+      <button class="modal-close" style="position:static" onclick="closeWhopModal()">✕</button>
     </div>
-    <div class="cart-total-row">
-      <span class="cart-total-lbl">Total</span>
-      <span class="cart-total-val" id="cart-total">$0.00</span>
+
+    <!-- Whop iframe mounts here — do NOT put anything else inside this div -->
+    <div id="whop-embed-container" style="min-height:420px;padding:0">
+      <!-- Whop's loader.js will inject the iframe into this element
+           once data-whop-checkout-plan-id is set by openWhopCheckout() -->
     </div>
-    <button class="btn btn-primary btn-full" onclick="goCheckout()">Checkout →</button>
+
+    <!-- Payment trust strip -->
+    <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:16px">
+      <span style="font-size:11px;color:var(--muted)">🔒 SSL Encrypted</span>
+      <span style="font-size:11px;color:var(--muted)">💳 All major cards</span>
+      <span style="font-size:11px;color:var(--muted)"> Apple Pay</span>
+      <span style="font-size:11px;color:var(--muted)">🛡 Buyer protection</span>
+    </div>
   </div>
 </div>
 
-<!-- CHECKOUT MODAL -->
-<div class="modal-overlay" id="modal-checkout">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('checkout')">✕</button>
-    <div class="modal-title">CHECKOUT</div>
-    <div class="modal-sub">Almost there — fill in shipping and pick how you want to pay.</div>
-
-    <!-- Gate: must be logged in -->
-    <div id="checkout-gate" style="display:none">
-      <div class="alert alert-info" style="margin-bottom:0">
-        You need to <a href="login.html" style="color:var(--red2);font-weight:600">log in or create an account</a> before checking out. It only takes 30 seconds.
-      </div>
-    </div>
-
-    <div id="checkout-form">
-      <!-- SHIPPING -->
-      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Shipping info</div>
-      <div class="form-group"><label>Full name</label><input class="form-control" type="text" id="sh-name" placeholder="Your full name"/></div>
-      <div class="form-group"><label>Email</label><input class="form-control" type="email" id="sh-email" placeholder="you@email.com"/></div>
-      <div class="form-group"><label>Address</label><input class="form-control" type="text" id="sh-addr" placeholder="123 Main St"/></div>
-      <div class="form-row">
-        <div class="form-group"><label>City</label><input class="form-control" type="text" id="sh-city" placeholder="New York"/></div>
-        <div class="form-group"><label>ZIP / Postcode</label><input class="form-control" type="text" id="sh-zip" placeholder="10001"/></div>
-      </div>
-      <div class="form-group"><label>Country</label>
-        <select class="form-control" id="sh-country">
-          <option>United States</option><option>United Kingdom</option>
-          <option>Canada</option><option>Australia</option><option>Germany</option>
-          <option>France</option><option>Netherlands</option>
-        </select>
-      </div>
-
-      <hr class="divider"/>
-
-      <!-- PAYMENT METHOD PICKER -->
-      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Payment method</div>
-      <div class="pay-methods">
-        <div class="pay-method selected" onclick="selectPayMethod('cashapp')" id="pm-cashapp">
-          <div class="pay-method-icon">💸</div>
-          <div class="pay-method-name">Cash App</div>
-          <div class="pay-method-sub">Send to our $tag</div>
-        </div>
-        <div class="pay-method" onclick="selectPayMethod('paypal')" id="pm-paypal">
-          <div class="pay-method-icon">🅿️</div>
-          <div class="pay-method-name">PayPal</div>
-          <div class="pay-method-sub">Pay via PayPal</div>
-        </div>
-        <div class="pay-method" onclick="selectPayMethod('venmo')" id="pm-venmo">
-          <div class="pay-method-icon">💙</div>
-          <div class="pay-method-name">Venmo</div>
-          <div class="pay-method-sub">Send to our Venmo</div>
-        </div>
-        <div class="pay-method" onclick="selectPayMethod('zelle')" id="pm-zelle">
-          <div class="pay-method-icon">⚡</div>
-          <div class="pay-method-name">Zelle</div>
-          <div class="pay-method-sub">Bank transfer</div>
-        </div>
-      </div>
-
-      <!-- CASH APP DETAIL -->
-      <div class="pay-detail active" id="pd-cashapp">
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px">
-          <div style="font-size:13px;margin-bottom:8px">Send to: <strong style="color:var(--red2)">$Naat3e</strong></div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.7">1. Open Cash App → send the exact total<br>2. Put your Order ID in the note<br>3. We confirm and ship within 24–48 hrs</div>
-          <div class="form-group" style="margin-top:14px;margin-bottom:0"><label>Your Cash App $tag (for verification)</label><input class="form-control" type="text" id="cashapp-user" placeholder="$YourCashTag"/></div>
-        </div>
-      </div>
-
-      <!-- PAYPAL DETAIL -->
-      <div class="pay-detail" id="pd-paypal">
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px">
-          <div style="font-size:13px;margin-bottom:8px">Send to: <strong style="color:var(--red2)">YOUR_PAYPAL_EMAIL</strong></div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.7">1. Open PayPal → send to the email above<br>2. Put your Order ID in the note<br>3. We confirm and ship within 24–48 hrs</div>
-          <div class="form-group" style="margin-top:14px;margin-bottom:0"><label>Your PayPal email (for verification)</label><input class="form-control" type="email" id="paypal-user" placeholder="yourpaypal@email.com"/></div>
-        </div>
-      </div>
-
-      <!-- VENMO DETAIL -->
-      <div class="pay-detail" id="pd-venmo">
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px">
-          <div style="font-size:13px;margin-bottom:8px">Send to: <strong style="color:var(--red2)">@YOUR_VENMO</strong></div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.7">1. Open Venmo → find our handle above<br>2. Put your Order ID in the note<br>3. We confirm and ship within 24–48 hrs</div>
-          <div class="form-group" style="margin-top:14px;margin-bottom:0"><label>Your Venmo @handle</label><input class="form-control" type="text" id="venmo-user" placeholder="@YourVenmo"/></div>
-        </div>
-      </div>
-
-      <!-- ZELLE DETAIL -->
-      <div class="pay-detail" id="pd-zelle">
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px">
-          <div style="font-size:13px;margin-bottom:8px">Send to: <strong style="color:var(--red2)">YOUR_ZELLE_PHONE_OR_EMAIL</strong></div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.7">1. Open your bank app → Zelle → send<br>2. Put your Order ID in the memo<br>3. We confirm and ship within 24–48 hrs</div>
-          <div class="form-group" style="margin-top:14px;margin-bottom:0"><label>Your Zelle phone/email</label><input class="form-control" type="text" id="zelle-user" placeholder="555-555-5555"/></div>
-        </div>
-      </div>
-
-      <hr class="divider"/>
-
-      <!-- STORE CREDIT IN CHECKOUT -->
-      <div id="checkout-credit-row" style="display:none;margin-bottom:12px">
-        <div class="cart-credit-row">
-          <span class="cart-credit-lbl">💜 Store credit applied</span>
-          <span class="cart-credit-val" id="co-credit-val">-$0.00</span>
-        </div>
-      </div>
-
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px">
-        <span style="font-size:13px;color:var(--muted)">Order total</span>
-        <span style="font-family:var(--font-display);font-size:26px;color:var(--red2)" id="co-total">$0.00</span>
-      </div>
-
-      <div class="alert alert-success" id="order-success" style="display:none"></div>
-      <button class="btn btn-primary btn-full" id="place-order-btn" onclick="placeOrder()">Place Order →</button>
-      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:12px">Order saved to your account · Confirmation email sent</p>
+<!-- SUCCESS PAGE (shown after Whop redirects back) -->
+<div class="modal-overlay" id="modal-success">
+  <div class="modal" style="text-align:center;padding:48px 32px">
+    <div style="font-size:56px;margin-bottom:16px">✅</div>
+    <div style="font-family:var(--font-display);font-size:32px;letter-spacing:2px;margin-bottom:10px;color:var(--text)">ORDER CONFIRMED</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:8px">Payment successful. You'll get a receipt from Whop.</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:32px">Your item will be shipped to the address you entered. Expect it in 3–7 days.</div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="account.html" class="btn btn-primary">View my orders →</a>
+      <a href="shop.html" class="btn btn-ghost">Keep shopping</a>
     </div>
   </div>
 </div>
@@ -216,27 +118,56 @@
   </div>
 </footer>
 
+<style>
+/* Buy Now button on product cards */
+.buy-now-btn {
+  background: var(--red);
+  border: none;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.buy-now-btn:hover { background: var(--red2); transform: translateY(-1px); }
+
+/* While Whop iframe is loading */
+.whop-loading {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 400px; color: var(--muted); font-size: 14px; gap: 10px;
+}
+.whop-spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--red2);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
 <script type="module">
 import { supabase } from './lib/supabase.js';
-import { getCart, saveCart, renderCart, renderCartCount, addToCart } from './lib/cart.js';
 import { renderProductCard } from './lib/products.js';
-import { generateOrderId } from './lib/utils.js';
 
 // Ticker
-const words = ['FREE SHIPPING','NEW DROPS WEEKLY','SCARLET HAUL','EARN STORE CREDIT','FAST DELIVERY','LIMITED STOCK','SECURE CHECKOUT'];
+const words = ['FREE SHIPPING','NEW DROPS WEEKLY','SCARLET HAUL','EARN STORE CREDIT','FAST DELIVERY','LIMITED STOCK','POWERED BY WHOP'];
 const all = [...words,...words].map(w=>`<span class="ticker-item">${w} <span>✦</span></span>`).join('');
 document.getElementById('ticker').innerHTML = all + all;
 
 // Auth
 const { data: { user } } = await supabase.auth.getUser();
 const authArea = document.getElementById('auth-area');
-
-// Fix #3: My Orders only visible when logged in
 if (user) {
   document.getElementById('nav-orders').classList.add('visible');
-  authArea.innerHTML = `<a href="account.html" class="btn btn-ghost btn-sm" style="margin-right:4px">My Account</a>`;
+  authArea.innerHTML = `<a href="account.html" class="btn btn-ghost btn-sm">My Account</a>`;
 } else {
-  authArea.innerHTML = `<a href="login.html" class="btn btn-ghost btn-sm" style="margin-right:4px">Login</a>`;
+  authArea.innerHTML = `<a href="login.html" class="btn btn-ghost btn-sm">Login</a>`;
 }
 
 // Load products
@@ -244,177 +175,58 @@ const { data: products } = await supabase.from('products').select('*').order('cr
 const grid = document.getElementById('featured-products');
 if (products && products.length) {
   grid.innerHTML = products.map(p => renderProductCard(p)).join('');
-  grid.querySelectorAll('.add-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const product = products.find(p => p.id == btn.dataset.id);
-      addToCart(product);
-      renderCart();
-      renderCartCount();
-      document.getElementById('cart-sidebar').classList.add('open');
-    });
-  });
 } else {
   grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--muted)">No products yet. Add some in the admin panel.</div>`;
 }
 
-// Store credit
-let userCredit = 0;
-let usingCredit = false;
-
-async function loadCredit() {
-  if (!user) return;
-  const { data } = await supabase.from('store_credit').select('balance').eq('user_id', user.id).single();
-  userCredit = data?.balance || 0;
-  if (userCredit > 0) {
-    document.getElementById('credit-toggle-wrap').style.display = 'block';
-    document.getElementById('credit-available').textContent = '$' + userCredit.toFixed(2);
-  }
-}
-await loadCredit();
-
-window.onCreditToggle = () => {
-  usingCredit = document.getElementById('use-credit-cb').checked;
-  const row = document.getElementById('credit-discount-row');
-  row.style.display = usingCredit ? 'flex' : 'none';
-  updateCartTotal();
-};
-
-function updateCartTotal() {
-  const cart = getCart();
-  const subtotal = cart.reduce((a, x) => a + x.price * x.qty, 0);
-  const discount = usingCredit ? Math.min(userCredit, subtotal) : 0;
-  const final = Math.max(0, subtotal - discount);
-  document.getElementById('cart-total').textContent = '$' + final.toFixed(2);
-  document.getElementById('credit-discount-val').textContent = '-$' + discount.toFixed(2);
-  document.getElementById('co-total').textContent = '$' + final.toFixed(2);
-  const coRow = document.getElementById('checkout-credit-row');
-  if (coRow) {
-    coRow.style.display = discount > 0 ? 'block' : 'none';
-    const coCredVal = document.getElementById('co-credit-val');
-    if (coCredVal) coCredVal.textContent = '-$' + discount.toFixed(2);
-  }
-  return { subtotal, discount, final };
-}
-
-renderCart();
-renderCartCount();
-updateCartTotal();
-
-// Payment method
-let selectedPayMethod = 'cashapp';
-window.selectPayMethod = (method) => {
-  selectedPayMethod = method;
-  ['cashapp','paypal','venmo','zelle'].forEach(m => {
-    document.getElementById('pm-'+m).classList.toggle('selected', m === method);
-    document.getElementById('pd-'+m).classList.toggle('active', m === method);
-  });
-};
-
-window.toggleCart = () => document.getElementById('cart-sidebar').classList.toggle('open');
-window.closeModal = id => document.getElementById('modal-' + id).classList.remove('open');
-
-window.goCheckout = () => {
-  document.getElementById('cart-sidebar').classList.remove('open');
-  updateCartTotal();
-
-  // Fix #3: gate checkout behind login
-  if (!user) {
-    document.getElementById('checkout-gate').style.display = 'block';
-    document.getElementById('checkout-form').style.display = 'none';
-  } else {
-    document.getElementById('checkout-gate').style.display = 'none';
-    document.getElementById('checkout-form').style.display = 'block';
-    document.getElementById('sh-email').value = user.email || '';
-    const name = user.user_metadata?.full_name || '';
-    if (name) document.getElementById('sh-name').value = name;
-  }
-  document.getElementById('modal-checkout').classList.add('open');
-};
-
+// Close modals when clicking overlay
 document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
 });
 
-window.placeOrder = async () => {
-  if (!user) { window.location.href = 'login.html'; return; }
+// Check if returning from Whop payment redirect
+const params = new URLSearchParams(window.location.search);
+if (params.get('status') === 'success') {
+  document.getElementById('modal-success').classList.add('open');
+  // Clean the URL
+  window.history.replaceState({}, '', window.location.pathname);
+}
 
-  const name = document.getElementById('sh-name').value.trim();
-  const email = document.getElementById('sh-email').value.trim();
-  const addr = document.getElementById('sh-addr').value.trim();
-  const city = document.getElementById('sh-city').value.trim();
-  const zip = document.getElementById('sh-zip').value.trim();
-  const country = document.getElementById('sh-country').value;
+// ============================================================
+//  openWhopCheckout(planId, productName)
+//  Called when customer clicks "Buy Now" on any product.
+//  - Sets the plan ID on the embed container
+//  - Whop's loader.js detects this and mounts the iframe
+// ============================================================
+window.openWhopCheckout = (planId, productName) => {
+  const modal = document.getElementById('modal-whop');
+  const container = document.getElementById('whop-embed-container');
+  document.getElementById('whop-product-name').textContent = productName;
 
-  // Get payment handle based on selected method
-  const payHandleMap = { cashapp: 'cashapp-user', paypal: 'paypal-user', venmo: 'venmo-user', zelle: 'zelle-user' };
-  const payHandle = document.getElementById(payHandleMap[selectedPayMethod])?.value.trim();
+  // Show loading state
+  container.innerHTML = `<div class="whop-loading"><div class="whop-spinner"></div> Loading secure checkout...</div>`;
+  modal.classList.add('open');
 
-  if (!name || !email || !addr || !city || !zip || !payHandle) {
-    alert('Please fill in all fields including your payment handle.'); return;
-  }
+  // Small delay so modal is visible before iframe injects
+  // Whop's loader.js watches for this attribute being set
+  setTimeout(() => {
+    container.innerHTML = ''; // clear loading spinner
+    const embedDiv = document.createElement('div');
+    embedDiv.setAttribute('data-whop-checkout-plan-id', planId);
+    embedDiv.setAttribute('data-whop-checkout-theme', 'dark');
+    embedDiv.setAttribute('data-whop-checkout-return-url', window.location.origin + window.location.pathname + '?status=success');
+    embedDiv.style.cssText = 'min-height:420px;';
+    container.appendChild(embedDiv);
+    // Whop's loader.js will now mount the iframe into embedDiv
+  }, 150);
+};
 
-  const cart = getCart();
-  if (!cart.length) { alert('Your cart is empty.'); return; }
-
-  const { subtotal, discount, final } = updateCartTotal();
-  const orderId = generateOrderId();
-
-  const orderData = {
-    order_id: orderId,
-    user_id: user.id,
-    customer_name: name,
-    customer_email: email,
-    shipping_address: `${addr}, ${city}, ${zip}, ${country}`,
-    payment_method: selectedPayMethod,
-    payment_handle: payHandle,
-    items: cart,
-    subtotal: subtotal.toFixed(2),
-    credit_applied: discount.toFixed(2),
-    total: final.toFixed(2),
-    status: 'pending_payment',
-    created_at: new Date().toISOString()
-  };
-
-  const { error } = await supabase.from('orders').insert(orderData);
-  if (error) { alert('Something went wrong saving your order. Please try again.'); console.error(error); return; }
-
-  // Deduct store credit if used
-  if (usingCredit && discount > 0) {
-    const newBalance = Math.max(0, userCredit - discount);
-    await supabase.from('store_credit').upsert({ user_id: user.id, balance: newBalance });
-    userCredit = newBalance;
-  }
-
-  // Award 5% store credit on this order
-  const creditEarned = final * 0.05;
-  if (creditEarned > 0) {
-    const currentBalance = userCredit;
-    await supabase.from('store_credit').upsert({ user_id: user.id, balance: +(currentBalance + creditEarned).toFixed(2) });
-  }
-
-  // Send confirmation email
-  try {
-    await supabase.functions.invoke('send-order-email', {
-      body: { email, name, orderId, total: final.toFixed(2), items: cart, paymentMethod: selectedPayMethod, payHandle, creditEarned: creditEarned.toFixed(2) }
-    });
-  } catch(e) { console.log('Email skipped:', e); }
-
-  const successEl = document.getElementById('order-success');
-  successEl.style.display = 'block';
-  successEl.innerHTML = `
-    ✓ Order placed! Your ID: <span class="order-id">${orderId}</span><br>
-    <span style="font-size:12px;margin-top:8px;display:block">
-      Send <strong>$${final.toFixed(2)}</strong> via <strong>${selectedPayMethod}</strong> to complete your order.
-      ${creditEarned > 0 ? `<br>💜 You earned <strong style="color:var(--credit)">$${creditEarned.toFixed(2)}</strong> in store credit!` : ''}
-    </span>
-  `;
-
-  document.getElementById('place-order-btn').style.display = 'none';
-  saveCart([]);
-  renderCart();
-  renderCartCount();
-  updateCartTotal();
+window.closeWhopModal = () => {
+  document.getElementById('modal-whop').classList.remove('open');
+  // Clear the embed so it doesn't keep a stale iframe
+  setTimeout(() => {
+    document.getElementById('whop-embed-container').innerHTML = '';
+  }, 300);
 };
 </script>
 </body>

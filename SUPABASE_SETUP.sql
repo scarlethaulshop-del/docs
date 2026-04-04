@@ -16,6 +16,7 @@ create table if not exists products (
   image_url text,
   stock integer,
   supplier_url text,
+  whop_plan_id text,
   active boolean default true,
   created_at timestamptz default now()
 );

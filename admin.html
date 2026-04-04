@@ -99,6 +99,11 @@
         </div>
         <div class="form-group"><label>Supplier URL (AliExpress / DSers)</label><input class="form-control" type="text" id="np-supplier" placeholder="https://aliexpress.com/item/..."/></div>
         <div class="form-group"><label>Image URL (optional)</label><input class="form-control" type="text" id="np-img" placeholder="https://..."/></div>
+        <div class="form-group" style="background:rgba(204,28,28,0.06);border:1px solid rgba(204,28,28,0.2);border-radius:8px;padding:14px">
+          <label style="color:var(--red2)">Whop Plan ID ⭐ required for checkout</label>
+          <input class="form-control" type="text" id="np-whop" placeholder="plan_XXXXXXXXX"/>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6">Get this from your Whop dashboard → Checkout links → ⋮ → Details → copy the ID starting with <code style="color:var(--red2)">plan_</code>. Each product needs its own plan.</div>
+        </div>
         <button class="btn btn-primary" onclick="addProduct()">Add Product</button>
       </div>
     </div>
@@ -269,12 +274,16 @@ window.addProduct = async () => {
   const stock = parseInt(document.getElementById('np-stock').value) || null;
   const supplier_url = document.getElementById('np-supplier').value.trim();
   const image_url = document.getElementById('np-img').value.trim();
+  const whop_plan_id = document.getElementById('np-whop').value.trim();
 
   if (!name || !price) {
     document.getElementById('addprod-alert').innerHTML = `<div class="alert alert-error">Name and price are required.</div>`; return;
   }
+  if (!whop_plan_id || !whop_plan_id.startsWith('plan_')) {
+    document.getElementById('addprod-alert').innerHTML = `<div class="alert alert-error">Enter a valid Whop Plan ID (starts with plan_). Get it from your Whop dashboard.</div>`; return;
+  }
 
-  const { error } = await supabase.from('products').insert({ name, description, price, orig_price, category, badge, emoji, stock, supplier_url, image_url });
+  const { error } = await supabase.from('products').insert({ name, description, price, orig_price, category, badge, emoji, stock, supplier_url, image_url, whop_plan_id });
   if (error) {
     document.getElementById('addprod-alert').innerHTML = `<div class="alert alert-error">${error.message}</div>`; return;
   }
